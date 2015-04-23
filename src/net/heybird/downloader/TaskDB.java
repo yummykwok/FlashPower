@@ -11,34 +11,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class TaskDB  extends SQLiteOpenHelper{
 
-    public static enum TaskState {
-        STARTED,
-        PAUSED,
-        CANCELED,
-        DOWNLOADED,
-        DELETED
-    }
-
-    public static class DownloadTask {
-        public int id;
-        public String name;
-        public String url;
-        public String path;
-        public int size;
-        public int downloaded;
-        public TaskState state;
-        public String time;
-        public List<TaskPart> threads;
-    }
-
-    public static class TaskPart {
-        public int id;
-        public int taskId;
-        public int offset;
-        public int size;
-        public int downloaded;
-    }
-
     private final static int DATABASE_VERSION = 1;
     private final static String DATABASE_NAME = "download.db";
 
