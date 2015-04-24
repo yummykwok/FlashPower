@@ -1,113 +1,82 @@
 package net.heybird.downloader;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import android.app.Service;
+import android.content.Intent;
+import android.os.Binder;
+import android.os.IBinder;
 
-public class DownloadManager {
+public class DownloadManager extends Service{
 
-	private List<DownloadTask> mTasks;
-	private static DownloadManager mInstance;
+    private List<DownloadTask> mTasks;
+    private ArrayList<WeakReference<Notifier>> mNotifiers;
+    private DmBinder dmBinder = new DmBinder();
 
-	public static interface UiNotifier {
-		
-	}
-
-    public static enum TaskState {
-        STARTED,
-        PAUSED,
-        CANCELED,
-        DOWNLOADED,
-        DELETED;
-
-        public static TaskState valueOf(int ordinal) {
-            TaskState res = null;
-            switch (ordinal) {
-                case 0:
-                    res = STARTED;
-                    break;
-                case 1:
-                    res = PAUSED;
-                    break;
-                case 2:
-                    res = CANCELED;
-                    break;
-                case 3:
-                    res = DOWNLOADED;
-                    break;
-                case 4:
-                    res = DELETED;
-                    break;
-            }
-            return res;
+    public class DmBinder extends Binder {
+        public List<DownloadTask> getTaskList() {
+            return mTasks;
         }
-    }
 
-    public static class DownloadTask {
-        private int id;
-        private String name;
-        private String url;
-        private String path;
-        private int size;
-        private int downloaded;
-        private TaskState state;
-        private String time;
-        private List<TaskPart> parts;
-        
-        public DownloadTask(int id, String name, String url, String path, 
-                            int size, int dowloaded, int state, String time){
-            this.id = id;
-            this.name = name;
-            this.url = url;
-            this.path = path;
-            this.size = size;
-            this.downloaded = downloaded;
-            this.state = TaskState.valueOf(state);
-            this.time = time;
-            this.parts = Collections.synchronizedList(new ArrayList<TaskPart>());
-
-            if (id < 0) {
-            	//add to db
+        public synchronized void registerForNotifier(Notifier noti) {
+            if (noti != null) {
+                removeCleared();
+                mNotifiers.add(new WeakReference<Notifier>(noti));
             }
         }
-        
-        protected void addThread(TaskPart part) {
-        	parts.add(part);
-        }
-    }
 
-    public static class TaskPart {
-        private int id;
-        private int taskId;
-        private int offset;
-        private int size;
-        private int downloaded;
-        private Thread thread;
-    }
-
-    public static DownloadManager getInstance() {
-        if (null==mInstance){
-            synchronized (DownloadManager.class) {
-                if (null==mInstance) {
-                	mInstance = new DownloadManager();
+        public synchronized void unregisterForNotifier(Notifier noti) {
+            if (noti != null) {
+                for (int i = mNotifiers.size()-1; i>=0; i--) {
+                    if (mNotifiers.get(i).get().equals(noti)) {
+                        mNotifiers.remove(i);
+                    }
                 }
             }
         }
-        return mInstance;
     }
-    
-    public static synchronized void close() {
-    	mInstance = null;
+
+    public static interface Notifier {
+        void onIncreaseDownloaded(int id, int size);
+        void onDownloadFailed(int id, Exception e);
+        void onTaskCompleted(int id);
+        void onStarted(int id, int size);
     }
+
+    private synchronized void removeCleared() {
+        for (int i = mNotifiers.size()-1; i >= 0; i--) {
+            if (mNotifiers.get(i).get() == null) {
+                mNotifiers.remove(i);
+            }
+        }
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return dmBinder;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        mNotifiers = new ArrayList<WeakReference<Notifier>>();
+        
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
 
     /**
      * Load tasks from database
      */
     private void loadFromDb() {
-    	
+        
     }
-    
-    public void startNewTask(String name, String url, String path, int size, int parts) {
-    	
-    }
+
 }
