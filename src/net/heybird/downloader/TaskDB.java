@@ -2,7 +2,6 @@ package net.heybird.downloader;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -48,9 +47,7 @@ public class TaskDB  extends SQLiteOpenHelper{
         mInstance = null;
     }
 
-    /*tabTask*/
-
-    public long insertTask(String name, String url, String path, String time, 
+    protected long insertTask(String name, String url, String path, String time, 
             int size, int downloaded, int state) {
         ContentValues values = new ContentValues();
         values.put("name", name);
@@ -63,7 +60,7 @@ public class TaskDB  extends SQLiteOpenHelper{
         return getWritableDatabase().insert("tabTask", null, values);        
     }
 
-    public int updateTask(int id, int size, int downloaded, int state) {
+    protected int updateTask(int id, int size, int downloaded, int state) {
         ContentValues values = new ContentValues();
         values.put("size", size);
         values.put("downloaded", downloaded);
@@ -71,7 +68,7 @@ public class TaskDB  extends SQLiteOpenHelper{
         return getWritableDatabase().update("tabTask", values, "_id="+id, null);
     }
     
-    public DownloadTask getTask(int id) {
+    protected DownloadTask getTask(int id) {
         DownloadTask result = null;
         Cursor c = query("select * from tabTask where _id="+id, null);
         if (c.moveToNext()) {
@@ -88,7 +85,7 @@ public class TaskDB  extends SQLiteOpenHelper{
         return result;
     }
 
-    public List<DownloadTask> getTasks() {
+    protected List<DownloadTask> getTasks() {
         List<DownloadTask> tasks = new ArrayList<DownloadTask>();
         Cursor c = query("select * from tabTask", null);
         while (c.moveToNext()) {
@@ -105,7 +102,7 @@ public class TaskDB  extends SQLiteOpenHelper{
         return tasks;
     }
 
-    public int delTask(int id) {
+    protected int delTask(int id) {
         getWritableDatabase().delete("tabPart", "task_id="+id, null);
         return getWritableDatabase().delete("tabTask", "_id="+id, null);
     }
