@@ -48,6 +48,68 @@ public class TaskDB  extends SQLiteOpenHelper{
         mInstance = null;
     }
 
+    /*tabTask*/
+
+    public long insertTask(String name, String url, String path, String time, 
+    		int size, int downloaded, int state) {
+    	ContentValues values = new ContentValues();
+    	values.put("name", name);
+    	values.put("url", url);
+    	values.put("path", path);
+    	values.put("time", time);
+    	values.put("size", size);
+    	values.put("downloaded", downloaded);
+    	values.put("state", state);
+    	return getWritableDatabase().insert("tabTask", null, values);    	
+    }
+
+    public int updateTask(int id, int size, int downloaded, int state) {
+    	ContentValues values = new ContentValues();
+    	values.put("size", size);
+    	values.put("downloaded", downloaded);
+    	values.put("state", state);
+    	return getWritableDatabase().update("tabTask", values, "_id="+id, null);
+    }
+    
+    public DownloadTask getTask(int id) {
+    	DownloadTask result = null;
+    	Cursor c = query("select * from tabTask where _id="+id, null);
+    	if (c.moveToNext()) {
+    		result = new DownloadTask(c.getInt(c.getColumnIndex("_id")), 
+    								c.getString(c.getColumnIndex("name")) , 
+    								c.getString(c.getColumnIndex("url")), 
+    								c.getString(c.getColumnIndex("path")), 
+    								c.getInt(c.getColumnIndex("size")), 
+    								c.getInt(c.getColumnIndex("downloaded")), 
+    								c.getInt(c.getColumnIndex("state")),  
+    								c.getString(c.getColumnIndex("time")));
+    	}
+    	c.close();
+    	return result;
+    }
+
+    public List<DownloadTask> getTasks() {
+    	List<DownloadTask> tasks = new ArrayList<DownloadTask>();
+    	Cursor c = query("select * from tabTask", null);
+    	while (c.moveToNext()) {
+    		tasks.add( new DownloadTask(c.getInt(c.getColumnIndex("_id")), 
+    				c.getString(c.getColumnIndex("name")) , 
+					c.getString(c.getColumnIndex("url")), 
+					c.getString(c.getColumnIndex("path")), 
+					c.getInt(c.getColumnIndex("size")), 
+					c.getInt(c.getColumnIndex("downloaded")), 
+					c.getInt(c.getColumnIndex("state")),  
+					c.getString(c.getColumnIndex("time"))) );
+    	}
+    	c.close();
+		return tasks;
+    }
+
+    public int delTask(int id) {
+    	getWritableDatabase().delete("tabPart", "task_id="+id, null);
+    	return getWritableDatabase().delete("tabTask", "_id="+id, null);
+    }
+
     @Override
     public void onCreate(SQLiteDatabase db) {
         String sql = SQL_CREATE_TABLE_TASK;
